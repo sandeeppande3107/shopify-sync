@@ -8,7 +8,6 @@ const shopify = shopifyApi({
     adminApiAccessToken: process.env.SHOPIFY_ACCESS_TOKEN,
     apiVersion: process.env.API_VERSION || ApiVersion.July24,
     storeDomain: process.env.SHOPIFY_STORE,
-    isCustomStoreApp: true,
     hostName: process.env.HOST_NAME || "localhost:3000",
 });
 
