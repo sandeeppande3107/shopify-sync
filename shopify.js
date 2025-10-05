@@ -1,5 +1,9 @@
 const { shopifyApi, ApiVersion } = require("@shopify/shopify-api");
+const { webcrypto } = require('crypto');
 
+if (!globalThis.crypto) {
+    globalThis.crypto = webcrypto;
+}
 require("@shopify/shopify-api/adapters/node");
 require("dotenv").config();
 const shopify = shopifyApi({

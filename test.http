@@ -35,10 +35,11 @@ POST http://localhost:3000/api/contacts
 Content-Type: application/json
 
 {
-  "first_name": "Jane",
-  "last_name": "Doe",
-  "email": "jane.doe@example.com"
+  "first_name": "dynamic",
+  "last_name": "user",
+  "email": "dyn1.user@example.com"
 }
+
 
 ###
 

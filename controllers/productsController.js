@@ -4,6 +4,9 @@ exports.getAllProducts = async (req, res) => {
     try {
         const client = new shopify.clients.Rest({ session: { accessToken: process.env.SHOPIFY_ACCESS_TOKEN, shop: process.env.SHOPIFY_STORE } });
         const response = await client.get({ path: "products" });
+        const countResp = await client.get({ path: `products/count` });
+        const total = countResp?.body?.count || 0;
+        console.log(`Total products: ${total}`);
         res.json(response.body.products);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -69,6 +72,8 @@ exports.createProduct = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
 
 exports.updateProduct = async (req, res) => {
     try {

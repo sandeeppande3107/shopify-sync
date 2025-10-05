@@ -23,7 +23,9 @@ exports.getContact = async (req, res) => {
 exports.createContact = async (req, res) => {
     try {
         const client = new shopify.clients.Rest({ session: { accessToken: process.env.SHOPIFY_ACCESS_TOKEN, shop: process.env.SHOPIFY_STORE } });
-        const response = await client.post({ path: "customers", data: { customer: req.body }, type: "application/json" });
+        console.log(req.body);
+        console.log(typeof req.body);
+        const response = await client.post({ path: "customers", data: req.body, type: "application/json" });
         res.status(201).json(response.body.customer);
     } catch (error) {
         res.status(500).json({ error: error.message });
