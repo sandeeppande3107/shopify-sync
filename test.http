@@ -46,3 +46,128 @@ Content-Type: application/json
 ### 📦 Get All Orders
 GET http://localhost:3000/api/orders
 Content-Type: application/json
+
+###
+
+### 🔄 Get All Subscriptions (Selling Plan Groups)
+GET http://localhost:3000/api/subscriptions
+Content-Type: application/json
+
+###
+
+### 🔄 Get Paginated Subscriptions
+GET http://localhost:3000/api/subscriptions/paginated?limit=5
+Content-Type: application/json
+
+###
+
+### 🔄 Get Paginated Subscriptions with cursor
+GET http://localhost:3000/api/subscriptions/paginated?limit=5&after=eyJsYXN0X2lkIjo3ODcxOTkxNjc2OTUxLCJsYXN0X3ZhbHVlIjoiY29sZCBkZXciLCJkaXJlY3Rpb24iOiJuZXh0In0
+Content-Type: application/json
+
+###
+
+### 🔄 Get Single Subscription by ID
+GET http://localhost:3000/api/subscriptions/gid://shopify/SellingPlanGroup/123456789
+Content-Type: application/json
+
+###
+
+### ➕ Create a Subscription (Selling Plan Group)
+POST http://localhost:3000/api/subscriptions
+Content-Type: application/json
+
+{
+  "input":{
+  "name": "New November Flexible Subscription Plans",
+  "options": ["Delivery", "Frequency"],
+  "sellingPlansToCreate": [
+    {
+      "name": "1 Month Plan",
+      "description": "Monthly subscription with 10% discount",
+      "options": ["Delivery: Monthly", "Frequency: 1 Month"],
+      "category": "SUBSCRIPTION",
+      "billingPolicy": {
+        "recurring": {
+          "interval": "MONTH",
+          "intervalCount": 1
+        }
+      },
+      "deliveryPolicy": {
+        "recurring": {
+          "interval": "MONTH",
+          "intervalCount": 1
+        }
+      },
+      "pricingPolicies": [
+        {
+          "fixed": {
+            "adjustmentType": "PERCENTAGE",
+            "adjustmentValue": {
+              "percentage": 10
+            }
+          }
+        },
+        {
+          "recurring": {
+            "adjustmentType": "PERCENTAGE",
+            "adjustmentValue": {
+              "percentage": 10
+            },
+            "afterCycle": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "6 Month Plan",
+      "description": "6-month subscription with 20% discount",
+      "options": ["Delivery: 6 Months", "Frequency: 6 Months"],
+      "category": "SUBSCRIPTION",
+      "billingPolicy": {
+        "recurring": {
+          "interval": "MONTH",
+          "intervalCount": 6
+        }
+      },
+      "deliveryPolicy": {
+        "recurring": {
+          "interval": "MONTH",
+          "intervalCount": 6
+        }
+      },
+      "pricingPolicies": [
+        {
+          "fixed": {
+            "adjustmentType": "PERCENTAGE",
+            "adjustmentValue": {
+              "percentage": 20
+            }
+          }
+        },
+        {
+          "recurring": {
+            "adjustmentType": "PERCENTAGE",
+            "adjustmentValue": {
+              "percentage": 20
+            },
+            "afterCycle": 1
+          }
+        }
+      ]
+    }
+  ]
+},
+  "resources": {
+    "productIds": [
+      "gid://shopify/Product/7871991349271",
+      "gid://shopify/Product/7871991676951",
+      "gid://shopify/Product/7871990661143"
+    ]
+  }
+}
+
+
+### 🔄 Delete a Subscription by ID
+DELETE http://localhost:3000/api/subscriptions/2668593175
+Content-Type: application/json

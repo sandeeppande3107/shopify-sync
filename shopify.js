@@ -10,7 +10,7 @@ const shopify = shopifyApi({
     apiKey: process.env.SHOPIFY_API_KEY,
     apiSecretKey: process.env.SHOPIFY_API_SECRET,
     adminApiAccessToken: process.env.SHOPIFY_ACCESS_TOKEN,
-    apiVersion: process.env.API_VERSION || ApiVersion.July24,
+    apiVersion: process.env.API_VERSION || ApiVersion.July25,
     storeDomain: process.env.SHOPIFY_STORE,
     hostName: process.env.HOST_NAME || "localhost:3000",
 });
