@@ -40,6 +40,58 @@ Content-Type: application/json
   "email": "dyn1.user@example.com"
 }
 
+###
+
+### 💳 Initiate Payment Method Setup for a Customer
+POST http://localhost:3000/api/contacts/8162950545431/payment-methods
+Content-Type: application/json
+
+{
+  "paymentMethod": {
+    "type": "CARD"
+  },
+  "origin": {
+    "channel": "ONLINE_STORE"
+  },
+  "successRedirectUrl": "http://locahost:3000/payments/success",
+  "cancelRedirectUrl": "http://localhost:3000.com/payments/cancel",
+  "test": true
+}
+
+###
+
+### 🔗 Link a Payment Method to a Customer
+POST http://localhost:3000/api/contacts/123456789/payment-methods/link
+Content-Type: application/json
+
+{
+  "remoteReference": {
+    "stripePaymentMethod": {
+      "customerId": "stripe_customer_id",
+      "paymentMethodId": "stripe_payment_method_id"
+    }
+  },
+  "billingAddress": {
+    "address1": "151 O'Connor St",
+    "city": "Ottawa",
+    "province": "Ontario",
+    "country": "Canada",
+    "zip": "K2P 2L8"
+  },
+  "test": true
+}
+
+###
+
+### 🔗 Get Payment Method Update URL
+GET http://localhost:3000/api/contacts/payment-methods/gid://shopify/CustomerPaymentMethod/123456789/update-url
+Content-Type: application/json
+
+###
+
+### 🔗 Redirect to Payment Method Update Flow
+GET http://localhost:3000/api/contacts/payment-methods/gid://shopify/CustomerPaymentMethod/123456789/update-redirect
+
 
 ###
 
@@ -78,90 +130,97 @@ POST http://localhost:3000/api/subscriptions
 Content-Type: application/json
 
 {
-  "input":{
-  "name": "New November Flexible Subscription Plans",
-  "options": ["Delivery", "Frequency"],
-  "sellingPlansToCreate": [
-    {
-      "name": "1 Month Plan",
-      "description": "Monthly subscription with 10% discount",
-      "options": ["Delivery: Monthly", "Frequency: 1 Month"],
-      "category": "SUBSCRIPTION",
-      "billingPolicy": {
-        "recurring": {
-          "interval": "MONTH",
-          "intervalCount": 1
-        }
-      },
-      "deliveryPolicy": {
-        "recurring": {
-          "interval": "MONTH",
-          "intervalCount": 1
-        }
-      },
-      "pricingPolicies": [
-        {
-          "fixed": {
-            "adjustmentType": "PERCENTAGE",
-            "adjustmentValue": {
-              "percentage": 10
-            }
+  "input": {
+    "name": "New Bocs Subscription Plans",
+    "options": [
+      "Delivery",
+      "Frequency"
+    ],
+    "sellingPlansToCreate": [
+      {
+        "name": "1 Day",
+        "description": "Subscription for 1 Day interval with 0% discount",
+        "options": [
+          "Delivery: 1 Day",
+          "Frequency: 1 Day"
+        ],
+        "category": "SUBSCRIPTION",
+        "billingPolicy": {
+          "recurring": {
+            "interval": "DAY",
+            "intervalCount": 1
           }
         },
-        {
+        "deliveryPolicy": {
           "recurring": {
-            "adjustmentType": "PERCENTAGE",
-            "adjustmentValue": {
-              "percentage": 10
-            },
-            "afterCycle": 1
-          }
-        }
-      ]
-    },
-    {
-      "name": "6 Month Plan",
-      "description": "6-month subscription with 20% discount",
-      "options": ["Delivery: 6 Months", "Frequency: 6 Months"],
-      "category": "SUBSCRIPTION",
-      "billingPolicy": {
-        "recurring": {
-          "interval": "MONTH",
-          "intervalCount": 6
-        }
-      },
-      "deliveryPolicy": {
-        "recurring": {
-          "interval": "MONTH",
-          "intervalCount": 6
-        }
-      },
-      "pricingPolicies": [
-        {
-          "fixed": {
-            "adjustmentType": "PERCENTAGE",
-            "adjustmentValue": {
-              "percentage": 20
-            }
+            "interval": "DAY",
+            "intervalCount": 1
           }
         },
-        {
-          "recurring": {
-            "adjustmentType": "PERCENTAGE",
-            "adjustmentValue": {
-              "percentage": 20
-            },
-            "afterCycle": 1
+        "pricingPolicies": [
+          {
+            "fixed": {
+              "adjustmentType": "PERCENTAGE",
+              "adjustmentValue": {
+                "percentage": 20
+              }
+            }
+          },
+          {
+            "recurring": {
+              "adjustmentType": "PERCENTAGE",
+              "adjustmentValue": {
+                "percentage": 20
+              },
+              "afterCycle": 1
+            }
           }
-        }
-      ]
-    }
-  ]
-},
+        ]
+      },
+      {
+        "name": "1 Month",
+        "description": "Subscription for 1 Month interval with 0% discount",
+        "options": [
+          "Delivery: 1 Month",
+          "Frequency: 1 Month"
+        ],
+        "category": "SUBSCRIPTION",
+        "billingPolicy": {
+          "recurring": {
+            "interval": "DAY",
+            "intervalCount": 1
+          }
+        },
+        "deliveryPolicy": {
+          "recurring": {
+            "interval": "DAY",
+            "intervalCount": 1
+          }
+        },
+        "pricingPolicies": [
+          {
+            "fixed": {
+              "adjustmentType": "PERCENTAGE",
+              "adjustmentValue": {
+                "percentage": 20
+              }
+            }
+          },
+          {
+            "recurring": {
+              "adjustmentType": "PERCENTAGE",
+              "adjustmentValue": {
+                "percentage": 20
+              },
+              "afterCycle": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
   "resources": {
     "productIds": [
-      "gid://shopify/Product/7871991349271",
-      "gid://shopify/Product/7871991676951",
       "gid://shopify/Product/7871990661143"
     ]
   }
@@ -171,3 +230,193 @@ Content-Type: application/json
 ### 🔄 Delete a Subscription by ID
 DELETE http://localhost:3000/api/subscriptions/2668593175
 Content-Type: application/json
+
+###
+
+### 👤 Create Subscription for Customer (Single Line)
+POST http://localhost:3000/api/user-subscriptions
+Content-Type: application/json
+
+{
+  "customerId": "gid://shopify/Customer/1234567890",
+  "currency": "USD",
+  "billingPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "deliveryPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "lines": [
+    {
+      "variantId": "gid://shopify/ProductVariant/1111111111",
+      "sellingPlanId": "gid://shopify/SellingPlan/2222222222",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### 👤 Create Subscription for Customer (Multiple Lines)
+POST http://localhost:3000/api/user-subscriptions
+Content-Type: application/json
+
+{
+  "customerId": "gid://shopify/Customer/1234567890",
+  "currency": "USD",
+  "billingPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "deliveryPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "lines": [
+    {
+      "variantId": "gid://shopify/ProductVariant/1111111111",
+      "sellingPlanId": "gid://shopify/SellingPlan/2222222222",
+      "quantity": 1
+    },
+    {
+      "variantId": "gid://shopify/ProductVariant/3333333333",
+      "sellingPlanId": "gid://shopify/SellingPlan/4444444444",
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+### 👤 Create Subscription for Customer (With Custom Billing/Delivery Policy)
+POST http://localhost:3000/api/user-subscriptions
+Content-Type: application/json
+
+{
+  "customerId": "gid://shopify/Customer/1234567890",
+  "currency": "USD",
+  "billingPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "deliveryPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "lines": [
+    {
+      "variantId": "gid://shopify/ProductVariant/1111111111",
+      "sellingPlanId": "gid://shopify/SellingPlan/2222222222",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### 👤 Create Subscription for Customer (With Payment Method)
+POST http://localhost:3000/api/user-subscriptions
+Content-Type: application/json
+
+{
+  "customerId": "gid://shopify/Customer/1234567890",
+  "currency": "USD",
+  "paymentMethodId": "gid://shopify/CustomerPaymentMethod/9876543210",
+  "billingPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "deliveryPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "lines": [
+    {
+      "variantId": "gid://shopify/ProductVariant/1111111111",
+      "sellingPlanId": "gid://shopify/SellingPlan/2222222222",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### 👤 Create Subscription for Customer (With Payment Method and Custom Policies)
+POST http://localhost:3000/api/user-subscriptions
+Content-Type: application/json
+
+{
+  "customerId": "gid://shopify/Customer/1234567890",
+  "currency": "USD",
+  "paymentMethodId": "gid://shopify/CustomerPaymentMethod/9876543210",
+  "billingPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "deliveryPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "lines": [
+    {
+      "variantId": "gid://shopify/ProductVariant/1111111111",
+      "sellingPlanId": "gid://shopify/SellingPlan/2222222222",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### 👤 Create Subscription for Customer (Using Numeric IDs)
+POST http://localhost:3000/api/user-subscriptions
+Content-Type: application/json
+
+{
+  "customerId": "8303884533783",
+  "currency": "USD",
+  "nextBillingDate": "2025-11-25",
+  "paymentMethodId": "f14037f5d22149ab83d17c25e0672682",
+  "billingPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "deliveryPolicy": {
+    "recurring": {
+      "interval": "DAY",
+      "intervalCount": 1
+    }
+  },
+  "lines": [
+    {
+      "variantId": "43136082182167",
+      "sellingPlanId": "5732990999",
+      "quantity": 1,
+      "currentPrice": 10
+    }
+  ]
+}

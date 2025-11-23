@@ -270,37 +270,29 @@ exports.createSellingPlanGroup = async (req, res) => {
         });
 
         const mutation = `
-            mutation sellingPlanGroupCreate($input: SellingPlanGroupInput!, $resources: SellingPlanGroupResourceInput) {
-                sellingPlanGroupCreate(input: $input, resources: $resources) {
-                    sellingPlanGroup {
-                        id
-                        name
-                        sellingPlans(first: 10) {
-                            edges {
-                                node {
-                                    id
-                                    name
-                                    description
-                                    options
-                                    pricingPolicies {
-                                        ... on SellingPlanFixedPricingPolicy {
-                                            adjustmentType
-                                        }
-                                        ... on SellingPlanRecurringPricingPolicy {
-                                            adjustmentType
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    userErrors {
-                        field
-                        message
-                    }
+      mutation sellingPlanGroupCreate($input: SellingPlanGroupInput!, $resources: SellingPlanGroupResourceInput) {
+        sellingPlanGroupCreate(input: $input, resources: $resources) {
+          sellingPlanGroup {
+            id
+            name
+            sellingPlans(first: 10) {
+              edges {
+                node {
+                  id
+                  name
+                  description
+                  options
                 }
+              }
             }
-        `;
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
 
         const response = await client.request(mutation, { variables: { input: req.body.input, resources: req.body.resources } });
 
