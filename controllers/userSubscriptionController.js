@@ -16,18 +16,31 @@ const normalizeGid = (type, id) => {
 };
 
 // ----------------------------------------------------
-// Mutation: Atomic Create Subscription Contract
+// Mutation: Create subscription draft
 // ----------------------------------------------------
-const ATOMIC_CREATE = `
-  mutation subscriptionContractAtomicCreate($input: SubscriptionContractAtomicCreateInput!) {
-    subscriptionContractAtomicCreate(input: $input) {
-      contract {
+const CREATE_DRAFT = `
+  mutation subscriptionContractCreate($input: SubscriptionContractCreateInput!) {
+    subscriptionContractCreate(input: $input) {
+      draft {
         id
-        status
-        customer {
-          id
-        }
-        lines(first: 10) {
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+// ----------------------------------------------------
+// Mutation: Add line to subscription draft
+// ----------------------------------------------------
+const ADD_LINE = `
+  mutation subscriptionDraftLineAdd($draftId: ID!, $input: SubscriptionLineInput!) {
+    subscriptionDraftLineAdd(draftId: $draftId, input: $input) {
+      draft {
+        id
+        lines(first: 20) {
           nodes {
             id
             quantity
@@ -46,7 +59,37 @@ const ATOMIC_CREATE = `
 `;
 
 // ----------------------------------------------------
-// MAIN: Create subscription for customer (Atomic)
+// Mutation: Commit draft to create final contract
+// ----------------------------------------------------
+const COMMIT_DRAFT = `
+  mutation subscriptionDraftCommit($draftId: ID!) {
+    subscriptionDraftCommit(draftId: $draftId) {
+      contract {
+        id
+        status
+        customer {
+          id
+        }
+        lines(first: 20) {
+          nodes {
+            id
+            quantity
+            productId
+            variantId
+            variantTitle
+          }
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+// ----------------------------------------------------
+// MAIN: Create subscription for customer (Non-Atomic)
 // ----------------------------------------------------
 exports.createSubscriptionForCustomer = async (req, res) => {
     try {
@@ -77,26 +120,6 @@ exports.createSubscriptionForCustomer = async (req, res) => {
 
         const client = createGraphqlClient();
 
-        // Prepare subscription lines - using productVariantId and currentPrice
-        const subscriptionLines = lines.map(line => {
-            const lineInput = {
-                productVariantId: normalizeGid("ProductVariant", line.variantId),
-                quantity: line.quantity || 1
-            };
-
-            // Add currentPrice only if it's a valid number (not null, not undefined)
-            if (line.currentPrice !== undefined && line.currentPrice !== null && typeof line.currentPrice === 'number') {
-                lineInput.currentPrice = line.currentPrice;
-            }
-
-            // Add sellingPlanId if provided (optional)
-            if (line.sellingPlanId) {
-                lineInput.sellingPlanId = normalizeGid("SellingPlan", line.sellingPlanId);
-            }
-
-            return { line: lineInput };
-        });
-
         // Unwrap recurring format if present (convert from {recurring: {interval, intervalCount}} to {interval, intervalCount})
         const normalizePolicy = (policy) => {
             if (policy && policy.recurring) {
@@ -112,62 +135,124 @@ exports.createSubscriptionForCustomer = async (req, res) => {
         const normalizedBillingPolicy = normalizePolicy(billingPolicy);
         const normalizedDeliveryPolicy = normalizePolicy(deliveryPolicy);
 
-        // Build the input structure
-        const input = {
-            customerId: normalizeGid("Customer", customerId),
-            currencyCode: currency || "USD",
-            lines: subscriptionLines,
+        // Step 1: Create subscription draft
+        console.log("📌 Step 1: Creating subscription draft…");
+
+        const draftInput = {
             contract: {
-                status: status || "ACTIVE",
                 billingPolicy: normalizedBillingPolicy,
-                deliveryPolicy: normalizedDeliveryPolicy,
-                deliveryPrice: 0
+                deliveryPolicy: normalizedDeliveryPolicy
             }
         };
 
-        // Add optional fields - only if they have valid values (not null, not undefined, not empty)
-        if (nextBillingDate && nextBillingDate !== null && nextBillingDate !== undefined && nextBillingDate !== '') {
-            input.nextBillingDate = nextBillingDate;
-        }
+        // Add required fields
+        draftInput.customerId = normalizeGid("Customer", customerId);
+        draftInput.currencyCode = currency || "USD";
+
+        // Status is required - use provided status or default to ACTIVE
+        draftInput.contract.status = (status && status.trim() !== '') ? status : "ACTIVE";
 
         if (paymentMethodId) {
-            input.contract.paymentMethodId = normalizeGid("CustomerPaymentMethod", paymentMethodId);
+            draftInput.contract.paymentMethodId = normalizeGid("CustomerPaymentMethod", paymentMethodId);
         }
 
-        if (deliveryPrice !== undefined) {
-            input.contract.deliveryPrice = deliveryPrice;
-        }
+        // Delivery price is required - must be a number (default to 0 if not provided)
+        draftInput.contract.deliveryPrice = (deliveryPrice !== undefined && typeof deliveryPrice === 'number') ? deliveryPrice : 0;
 
         if (deliveryMethod) {
-            input.contract.deliveryMethod = deliveryMethod;
+            draftInput.contract.deliveryMethod = deliveryMethod;
         }
 
-        console.log("📌 Creating subscription contract atomically…");
-        console.log("Input:", JSON.stringify(input, null, 2));
+        // Add nextBillingDate at root level if provided
+        if (nextBillingDate && nextBillingDate !== null && nextBillingDate !== undefined && nextBillingDate !== '') {
+            draftInput.nextBillingDate = nextBillingDate;
+        }
 
-        const response = await client.request(ATOMIC_CREATE, { variables: { input } });
+        const draftResponse = await client.request(CREATE_DRAFT, { variables: { input: draftInput } });
 
-        if (!response || !response.data || !response.data.subscriptionContractAtomicCreate) {
+        if (!draftResponse || !draftResponse.data || !draftResponse.data.subscriptionContractCreate) {
             throw new Error("Unexpected response from Shopify GraphQL API");
         }
 
-        const result = response.data.subscriptionContractAtomicCreate;
-
-        if (result.userErrors && result.userErrors.length > 0) {
-            console.error("Subscription Create Errors:", result.userErrors);
+        if (draftResponse.data.subscriptionContractCreate.userErrors?.length > 0) {
+            console.error("Draft Create Errors:", draftResponse.data.subscriptionContractCreate.userErrors);
             return res.status(400).json({
-                error: "Failed to create subscription contract",
-                userErrors: result.userErrors
+                error: "Failed to create subscription draft",
+                userErrors: draftResponse.data.subscriptionContractCreate.userErrors
             });
         }
 
-        const contract = result.contract;
+        const draftId = draftResponse.data.subscriptionContractCreate.draft.id;
+        console.log("✅ Draft created:", draftId);
+
+        // Step 2: Add lines to the draft
+        console.log("📌 Step 2: Adding lines to draft…");
+
+        const addedLines = [];
+        for (const line of lines) {
+            const lineInput = {
+                productVariantId: normalizeGid("ProductVariant", line.variantId),
+                quantity: line.quantity || 1
+            };
+
+            // Add currentPrice only if it's a valid number (not null, not undefined)
+            if (line.currentPrice !== undefined && line.currentPrice !== null && typeof line.currentPrice === 'number') {
+                lineInput.currentPrice = line.currentPrice;
+            }
+
+            // Add sellingPlanId if provided (optional)
+            if (line.sellingPlanId) {
+                lineInput.sellingPlanId = normalizeGid("SellingPlan", line.sellingPlanId);
+            }
+
+            const addLineResponse = await client.request(ADD_LINE, {
+                variables: {
+                    draftId: draftId,
+                    input: lineInput
+                }
+            });
+
+            if (!addLineResponse || !addLineResponse.data || !addLineResponse.data.subscriptionDraftLineAdd) {
+                throw new Error("Unexpected response from Shopify GraphQL API when adding line");
+            }
+
+            if (addLineResponse.data.subscriptionDraftLineAdd.userErrors?.length > 0) {
+                console.error("Add Line Errors:", addLineResponse.data.subscriptionDraftLineAdd.userErrors);
+                return res.status(400).json({
+                    error: `Failed to add line to draft: ${line.variantId}`,
+                    userErrors: addLineResponse.data.subscriptionDraftLineAdd.userErrors
+                });
+            }
+
+            addedLines.push(addLineResponse.data.subscriptionDraftLineAdd.draft);
+            console.log(`✅ Line added: ${line.variantId}`);
+        }
+
+        // Step 3: Commit the draft to create the final contract
+        console.log("📌 Step 3: Committing draft to create final contract…");
+
+        const commitResponse = await client.request(COMMIT_DRAFT, { variables: { draftId: draftId } });
+
+        if (!commitResponse || !commitResponse.data || !commitResponse.data.subscriptionDraftCommit) {
+            throw new Error("Unexpected response from Shopify GraphQL API when committing draft");
+        }
+
+        if (commitResponse.data.subscriptionDraftCommit.userErrors?.length > 0) {
+            console.error("Commit Errors:", commitResponse.data.subscriptionDraftCommit.userErrors);
+            return res.status(400).json({
+                error: "Failed to commit subscription draft",
+                userErrors: commitResponse.data.subscriptionDraftCommit.userErrors
+            });
+        }
+
+        const contract = commitResponse.data.subscriptionDraftCommit.contract;
 
         console.log("🎉 Subscription Contract Created:", contract);
 
         res.status(201).json({
             message: "Subscription created successfully",
-            contract: contract
+            contract: contract,
+            draftId: draftId
         });
     } catch (error) {
         console.error("❌ Error creating subscription:", error);
