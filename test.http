@@ -420,3 +420,37 @@ Content-Type: application/json
     }
   ]
 }
+
+###
+
+### 🚚 Get All Shipping Zones
+GET http://localhost:3000/api/shipping-zones
+Content-Type: application/json
+
+###
+
+### 🚚 Get Single Shipping Zone by ID
+GET http://localhost:3000/api/shipping-zones/523332943895
+Content-Type: application/json
+
+###
+
+### 🚚 Calculate Shipping Rate
+POST http://localhost:3000/api/shipping-zones/calculate-rate
+Content-Type: application/json
+
+{
+  "countryCode": "US",
+  "provinceCode": "AL",
+  "zip": "10001"
+}
+
+###
+
+### 🚚 Calculate Shipping Rate (Country Only)
+POST http://localhost:3000/api/shipping-zones/calculate-rate
+Content-Type: application/json
+
+{
+  "countryCode": "CA"
+}
