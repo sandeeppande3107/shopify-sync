@@ -397,7 +397,7 @@ Content-Type: application/json
 {
   "customerId": "8303884533783",
   "currency": "USD",
-  "nextBillingDate": "2025-11-25",
+  "nextBillingDate": "2025-11-30",
   "paymentMethodId": "f14037f5d22149ab83d17c25e0672682",
   "billingPolicy": {
     "recurring": {
@@ -453,4 +453,22 @@ Content-Type: application/json
 
 {
   "countryCode": "CA"
+}
+
+###
+
+### 🔐 Sign JWT
+POST http://localhost:3000/api/jwt/sign
+Content-Type: application/json
+
+{
+  "payload": {
+          "shop":"dev-store-749237498237498330.myshopify.com",
+          "storeId": "c3cad56c-6b5e-4f0a-b007-1dfef9d36286",
+          "orgId": "ba738a4d-276a-48db-87a7-cb37402a0147",
+          "sessionId": "e4599b96-b3e2-4c63-b7c0-cac2866048d5"
+        },
+  "secret": "your-secret-key",
+  "expiresIn": "7d",
+  "algorithm": "HS256"
 }
