@@ -466,9 +466,40 @@ Content-Type: application/json
           "shop":"dev-store-749237498237498330.myshopify.com",
           "storeId": "c3cad56c-6b5e-4f0a-b007-1dfef9d36286",
           "orgId": "ba738a4d-276a-48db-87a7-cb37402a0147",
-          "sessionId": "e4599b96-b3e2-4c63-b7c0-cac2866048d5"
+          "sessionId": "e4599b96-b3e2-4c63-b7c0-cac2866048d5",
+          "userId": "8096421150743"
         },
-  "secret": "your-secret-key",
+  "secret": "Oqi4*ens!ij0FYLU06dye#necc&cX3*r",
   "expiresIn": "7d",
   "algorithm": "HS256"
 }
+
+###
+
+### 🎨 Get All Theme Configs
+GET http://localhost:3000/api/theme-config
+Content-Type: application/json
+
+###
+
+### 🎨 Get All Themes (REST API)
+GET http://localhost:3000/api/theme-config/themes
+Content-Type: application/json
+
+###
+
+### 🎨 Get Theme by ID (REST API)
+GET http://localhost:3000/api/theme-config/themes/123456789
+Content-Type: application/json
+
+###
+
+### 🎨 Get Theme Config (GraphQL - Published Theme)
+GET http://localhost:3000/api/theme-config
+Content-Type: application/json
+
+###
+
+### 🎨 Get Theme Config by ID (GraphQL)
+GET http://localhost:3000/api/theme-config?themeId=169340076055
+Content-Type: application/json

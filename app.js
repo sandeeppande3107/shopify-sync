@@ -9,6 +9,7 @@ const subscriptionsRoutes = require("./routes/subscriptions");
 const userSubscriptionsRoutes = require("./routes/userSubscriptions");
 const shippingZonesRoutes = require("./routes/shippingZones");
 const jwtRoutes = require("./routes/jwt");
+const themeConfigRoutes = require("./routes/themeConfig");
 
 const app = express();
 app.use(express.json());
@@ -20,6 +21,7 @@ app.use("/api/subscriptions", subscriptionsRoutes);
 app.use("/api/user-subscriptions", userSubscriptionsRoutes);
 app.use("/api/shipping-zones", shippingZonesRoutes);
 app.use("/api/jwt", jwtRoutes);
+app.use("/api/theme-config", themeConfigRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
